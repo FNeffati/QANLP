@@ -5,7 +5,10 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="59d237ec-598c-41e4-ad1e-6982ab237095" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/Project/WikiExtractor.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Datasets/Training/train-v2.txt" beforeDir="false" afterPath="$PROJECT_DIR$/Datasets/Training/Squad/train-v2.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Project/Preprocessor.py" beforeDir="false" afterPath="$PROJECT_DIR$/Project/Preprocessor.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -46,7 +49,12 @@
     &quot;settings.editor.selected.configurable&quot;: &quot;com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable&quot;
   }
 }</component>
-  <component name="RunManager" selected="Python.Preprocessor">
+  <component name="RecentsManager">
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/Datasets/Training/Squad" />
+    </key>
+  </component>
+  <component name="RunManager" selected="Python.WikiExtractor">
     <configuration name="Preprocessor" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="QANLP" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -91,8 +99,31 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
+    <configuration name="WikiExtractor" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="QANLP" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/Project" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/Project/WikiExtractor.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="Python.WikiExtractor" />
         <item itemvalue="Python.Preprocessor" />
         <item itemvalue="Python.Proprocessor" />
       </list>
@@ -108,6 +139,8 @@
       <updated>1668986946561</updated>
       <workItem from="1668986949062" duration="481000" />
       <workItem from="1668987488703" duration="3111000" />
+      <workItem from="1669045018890" duration="1760000" />
+      <workItem from="1669087557954" duration="5573000" />
     </task>
     <servers />
   </component>
@@ -126,7 +159,8 @@
     </option>
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
+    <SUITE FILE_PATH="coverage/QANLP$Wiki_extractor.coverage" NAME="WikiExtractor Coverage Results" MODIFIED="1669234839810" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Project" />
     <SUITE FILE_PATH="coverage/QANLP$Proprocessor.coverage" NAME="Proprocessor Coverage Results" MODIFIED="1668989170710" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Project" />
-    <SUITE FILE_PATH="coverage/QANLP$Preprocessor.coverage" NAME="Preprocessor Coverage Results" MODIFIED="1668989545546" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Project" />
+    <SUITE FILE_PATH="coverage/QANLP$Preprocessor.coverage" NAME="Preprocessor Coverage Results" MODIFIED="1669234727391" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Project" />
   </component>
 </project>
