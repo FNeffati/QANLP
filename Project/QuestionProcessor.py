@@ -71,26 +71,92 @@ def compare_sentence_with_question(sentence1, question):
 
 
 def process_sentence(sentence):
-    sentence = word_tokenize(sentence)
+
+    #Can we preprocess our dataset so that we would not need to do the operations below for each sentence we have?
+
+    stops = set(stopwords.words('english'))
+    lowered = sentence.lower()
+    sentence = word_tokenize(lowered)
     tagged = nltk.pos_tag(sentence)
 
+    WDT_tags = ["NN", "NNP", "NNS", "JJ", "JJR", "JJS"]
+    WP_tags = ["NN", "NNP", "NNS", "JJ", "JJR", "JJS", "VB", "VBD", "VBG", "VBN", "VBP", "VBZ"]
+    WRB_tags = ["NN", "NNP", "NNS", "JJ", "JJR", "JJS", "VB"]
     important = []
+    """This is the first approach. 
+    It first checks the type of question based on the first wh-question word, and then extracts the most relevant
+    parts of speech.
+    """
+    # WDT words are: that what whatever which whichever
+    if tagged[0][1] == "WDT":
+        for item in tagged:
+            if item[0] not in stops:
+                if item[1] in WDT_tags:
+                    important.append(item[0])
+    # WP words are: that what whatever whatsoever which who whom whosoever
+    elif tagged[0][1] == "WP":
+        for item in tagged:
+            if item[0] not in stops:
+                if item[1] in WP_tags:
+                    important.append(item[0])
+    # WRB words are: how however whence whenever where whereby whereever wherein whereof why
+    elif tagged[0][1] == "WRB":
+        for item in tagged:
+            if item[0] not in stops:
+                if item[1] in WRB_tags:
+                    important.append(item[0])
+
+    '''The second approach just filters out stopwords and wh words'''
+    """
     for item in tagged:
-        if 'NN' in item[1]:
-            important.append(item[0])
+        if item[0] not in stops:
+            if 'WDT' not in item[1] and 'WP' not in item[1] and 'WRB' not in item[1]:
+                important.append(item[0])
+    """
     # print("Your sentence seems to be about the following items:", str(important))
     return important
 
 
 def process_question(user_q):
     # TODO Implement WH questions extraction
-    question = word_tokenize(user_q)
+    stops = set(stopwords.words('english'))
+    lowered = user_q.lower()
+    question = word_tokenize(lowered)
     tagged = nltk.pos_tag(question)
-
+    WDT_tags = ["NN", "NNP", "NNS", "JJ", "JJR", "JJS"]
+    WP_tags = ["NN", "NNP", "NNS", "JJ", "JJR", "JJS", "VB", "VBD", "VBG", "VBN", "VBP", "VBZ"]
+    WRB_tags = ["NN", "NNP", "NNS", "JJ", "JJR", "JJS", "VB"]
     important = []
+    """This is the first approach. 
+    It first checks the type of question based on the first wh-question word, and then extracts the most relevant
+    parts of speech.
+    """
+    #WDT words are: that what whatever which whichever
+    if tagged[0][1] == "WDT":
+        for item in tagged:
+            if item[0] not in stops:
+                if item[1] in WDT_tags:
+                    important.append(item[0])
+    #WP words are: that what whatever whatsoever which who whom whosoever
+    elif tagged[0][1] == "WP":
+        for item in tagged:
+            if item[0] not in stops:
+                if item[1] in WP_tags:
+                    important.append(item[0])
+    # WRB words are: how however whence whenever where whereby whereever wherein whereof why
+    elif tagged[0][1] == "WRB":
+        for item in tagged:
+            if item[0] not in stops:
+                if item[1] in WRB_tags:
+                    important.append(item[0])
+
+    '''The second approach just filters out stopwords and wh words'''
+    """
     for item in tagged:
-        if 'NN' in item[1]:
-            important.append(item[0])
+        if item[0] not in stops:
+            if 'WDT' not in item[1] and 'WP' not in item[1] and 'WRB' not in item[1]:
+                important.append(item[0])
+    """
     # print("Your question seems to be about the following items:", str(important))
     return important
 
