@@ -59,7 +59,7 @@ def getGloveVectors():
 
                 except:
                     print("Something didn't go well with this file: " + str(file_name))
-
+    print("Done getting vectors")
 
 def what_is_your_question():
     user_input = input("What would you like to know? ")
@@ -238,14 +238,10 @@ def simple_qa_vectors(data, vector_dict):
             for word in question:
                 word = word.lower()
                 question_vectors += vector_dict[word]
-                if(test):
-                    print(word)
-                    print(vector_dict[word])
-                    print(question_vectors)
+
 
         except:
-            if(test):
-                print("exception")
+
             question_vectors += empty
 
         try:
@@ -257,16 +253,135 @@ def simple_qa_vectors(data, vector_dict):
             answer_vectors += empty
 
         qa_vectors[entry[0]] = (question_vectors, answer_vectors)
-        test = False
 
+    print("done finding vectors")
     return qa_vectors
 
+
+def get_arrays(vectors):
+    data = list(vectors.items())
+
+
+    q_train = []
+    a_train = []
+
+
+    for entry in data:
+        q_train.append(entry[1][0])
+        a_train.append(entry[1][1])
+
+
+
+
+
+    return q_train, a_train
+
+def init_params():
+    W1 = np.random.rand(50, 50) - 0.5
+    b1 = np.random.rand(50, 1) - 0.5
+    #W2 = np.random.rand(10, 50) - 0.5
+    #b2 = np.random.rand(50, 1) - 0.5
+    return W1, b1
+def ReLU(Z):
+    return np.maximum(Z, 0)
+
+
+def softmax(Z):
+    A = np.exp(Z) / sum(np.exp(Z))
+    return A
+
+
+def forward_prop(W1, b1, X):
+    Z1 = W1.dot(X) + b1
+    A1 = softmax(Z1)
+
+    return Z1, A1
+
+
+def ReLU_deriv(Z):
+    return Z > 0
+
+
+def one_hot(Y):
+    one_hot_Y = np.zeros((Y.size, Y.max() + 1))
+    one_hot_Y[np.arange(Y.size), Y] = 1
+    one_hot_Y = one_hot_Y.T
+    return one_hot_Y
+
+
+def backward_prop(Z1, A1, Z2, A2, W1, W2, X, Y, m):
+    one_hot_Y = one_hot(Y)
+    dZ2 = A2 - one_hot_Y
+    dW2 = 1 / m * dZ2.dot(A1.T)
+    db2 = 1 / m * np.sum(dZ2)
+    dZ1 = W2.T.dot(dZ2) * ReLU_deriv(Z1)
+    dW1 = 1 / m * dZ1.dot(X.T)
+    db1 = 1 / m * np.sum(dZ1)
+    return dW1, db1, dW2, db2
+
+def update_params(W1, b1, dW1, db1, alpha):
+    W1 = W1 - alpha * dW1
+    b1 = b1 - alpha * db1
+    return W1, b1
+
+
+def get_predictions(A):
+    return np.argmax(A, 0)
+
+
+def get_accuracy(predictions, Y):
+    print(predictions, Y)
+    return np.sum(predictions == Y) / Y.size
+
+
+def gradient_descent(X, Y, alpha, iterations, n):
+    W1, b1 = init_params()
+    for i in range(iterations):
+        Z1, A1 = forward_prop(W1, b1, X)
+        dW1, db1 = backward_prop(Z1, A1, W1, X, Y, n)
+        W1, b1 = update_params(W1, b1, dW1, db1, alpha)
+        if i % 10 == 0:
+            print("Iteration: ", i)
+            predictions = get_predictions(A1)
+            print(get_accuracy(predictions, Y))
+    return W1, b1
+
+
+
+
+
+def make_predictions(X, W1, b1):
+    _, A1 = forward_prop(W1, b1, X)
+    predictions = get_predictions(A1)
+    return predictions
+
+
 if __name__ == '__main__':
+
     qas = get_qas()
     getGloveVectors()
-    print(list(qas.items())[0][0])
     qa_vectors = simple_qa_vectors(qas, embeddings_dict)
-    print(qa_vectors["56be85543aeaaa14008c9063"][0])
+
+
+    q_train, a_train = get_arrays(qa_vectors)
+    q_train = np.array(q_train)
+    a_train = np.array(a_train)
+    q_train = q_train.T
+    a_train = a_train.T
+    n = q_train.shape[1]
+    W1, b1 = gradient_descent(q_train, a_train, 0.10, 100, n)
+
+    #W1, b1, W2, b2 = init_params()
+    #Z1, A1, Z2, A2 = forward_prop(W1, b1, W2, b2, q_train)
+    #print(Z1)
+
+    """
+    
+    qa_vectors_array = list(qa_vectors.items())
+    print(qa_vectors_array[0])
+    np.random.shuffle(qa_vectors_array)
+    print(qa_vectors_array[0])
+    """
     #print(qa_vectors["56be85543aeaaa14008c9063"][1])
     #print(list(qa_vectors.items())[1])
     #user_question = what_is_your_question()
