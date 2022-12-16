@@ -1,5 +1,6 @@
 """
-In this class we'll be writing the rules of how each question is dealt with
+This code was developed by Fehmi Neffati and Vlad Tsimoshchanka using the code of Samson Zhang -
+https://www.kaggle.com/wwsalmon/simple-mnist-nn-from-scratch-numpy-no-tf-keras
 """
 import math
 import os
@@ -13,40 +14,38 @@ import json
 
 stop_words = set(stopwords.words('english'))
 
+#Dictionary for word vectors
 embeddings_dict = {}
 
-
-
-
-
+#Extract questions and
 def make_qid_to_has_ans(dataset):
-  qid_to_has_ans = {}
+    qid_to_has_ans = {}
 
-  for article in dataset:
+    for article in dataset:
 
-    for p in article['paragraphs']:
-      for qa in p['qas']:
-        qid_to_has_ans[qa['id']] = bool(qa['answers'])
-  return qid_to_has_ans
+        for p in article['paragraphs']:
+            for qa in p['qas']:
+                qid_to_has_ans[qa['id']] = bool(qa['answers'])
+    return qid_to_has_ans
+
 
 def extract_qas(dataset):
-  qas = {}
+    qas = {}
 
-  for article in dataset:
+    for article in dataset:
 
-    for p in article['paragraphs']:
-      for qa in p['qas']:
-        answer = json.loads(json.dumps(qa["answers"]))
-        #print(answer[0])
-        #tup = (qa["question"],qa["answers"]["text"])
-        if(len(answer) > 0):
+        for p in article['paragraphs']:
+            for qa in p['qas']:
+                answer = json.loads(json.dumps(qa["answers"]))
+                # print(answer[0])
+                # tup = (qa["question"],qa["answers"]["text"])
+                if (len(answer) > 0):
+                    tup = (qa["question"], answer[0]["text"])
+                    qas[qa["id"]] = tup
+    return qas
 
-            tup = (qa["question"], answer[0]["text"])
-            qas[qa["id"]] = tup
-  return qas
 
 def getGloveVectors():
-
     for file_name in os.scandir("Datasets/Training/glove"):
         if os.path.isfile(file_name):
             with open(file_name, 'r', encoding="utf−8") as f:
@@ -61,6 +60,7 @@ def getGloveVectors():
                     print("Something didn't go well with this file: " + str(file_name))
     print("Done getting vectors")
 
+
 def what_is_your_question():
     user_input = input("What would you like to know? ")
     return user_input
@@ -74,7 +74,7 @@ def most_similar_sentence(tokenized_file, question_sentence):
         important_words_from_sentence = process_sentence(sentence)
         if len(deepdiff.DeepDiff(important_words_from_question, important_words_from_sentence)) > 0:
 
-            current_similarity = compare_sentence_with_question(sentence,question_sentence)
+            current_similarity = compare_sentence_with_question(sentence, question_sentence)
             if current_similarity > best_matching_sentence_in_file:
                 best_matching_sentence_in_file = current_similarity
                 actual_sentence = sentence
@@ -85,6 +85,7 @@ def most_similar_sentence(tokenized_file, question_sentence):
 tried regular cosine similarity
 not accurate at all. 
 """
+
 
 def compare_sentence_with_question(sentence1, question):
     total_sentences_similarity = 0
@@ -104,8 +105,7 @@ def compare_sentence_with_question(sentence1, question):
 
 
 def process_sentence(sentence):
-
-    #Can we preprocess our dataset so that we would not need to do the operations below for each sentence we have?
+    # Can we preprocess our dataset so that we would not need to do the operations below for each sentence we have?
 
     stops = set(stopwords.words('english'))
     lowered = sentence.lower()
@@ -168,13 +168,13 @@ def process_question(user_q):
     It first checks the type of question based on the first wh-question word, and then extracts the most relevant
     parts of speech.
     """
-    #WDT words are: that what whatever which whichever
+    # WDT words are: that what whatever which whichever
     if tagged[0][1] == "WDT":
         for item in tagged:
             if item[0] not in stops:
                 if item[1] in WDT_tags:
                     important.append(item[0])
-    #WP words are: that what whatever whatsoever which who whom whosoever
+    # WP words are: that what whatever whatsoever which who whom whosoever
     elif tagged[0][1] == "WP":
         for item in tagged:
             if item[0] not in stops:
@@ -208,18 +208,19 @@ def cosine_similarity(wvec1, wvec2):
 
     return similarity
 
+
 def get_qas():
     with open("Datasets/Training/train-v2.txt", 'r') as f:
         json_data = json.load(f)
         data = json_data['data']
 
         print("Done getting json data.")
-        #print(data[0]["paragraphs"])
+        # print(data[0]["paragraphs"])
         qas = extract_qas(data)
 
-        #print(list(qas.items())[0][1][0])
+        # print(list(qas.items())[0][1][0])
 
-        #print(list(test_data.items())[0:10])
+        # print(list(test_data.items())[0:10])
         return qas
 
 
@@ -261,27 +262,24 @@ def simple_qa_vectors(data, vector_dict):
 def get_arrays(vectors):
     data = list(vectors.items())
 
-
     q_train = []
     a_train = []
-
 
     for entry in data:
         q_train.append(entry[1][0])
         a_train.append(entry[1][1])
 
-
-
-
-
     return q_train, a_train
 
+
 def init_params():
-    W1 = np.random.rand(50, 50) - 0.5
-    b1 = np.random.rand(50, 1) - 0.5
-    #W2 = np.random.rand(10, 50) - 0.5
-    #b2 = np.random.rand(50, 1) - 0.5
+    W1 = np.random.rand(1, 50) - 0.5
+    b1 = np.random.rand(1, 1) - 0.5
+    # W2 = np.random.rand(10, 50) - 0.5
+    # b2 = np.random.rand(50, 1) - 0.5
     return W1, b1
+
+
 def ReLU(Z):
     return np.maximum(Z, 0)
 
@@ -289,11 +287,15 @@ def ReLU(Z):
 def softmax(Z):
     A = np.exp(Z) / sum(np.exp(Z))
     return A
-def sigmoid(x): #logistic function
-    return 1/(1+np.exp(-x))
+
+
+def sigmoid(x):  # logistic function
+    return 1 / (1 + np.exp(-x))
+
 
 def sigmoid_der(x):
-    return sigmoid(x)*(1-sigmoid(x))  # loss function
+    return sigmoid(x) * (1 - sigmoid(x))  # loss function
+
 
 def forward_prop(W1, b1, X):
     Z1 = W1.dot(X) + b1
@@ -312,13 +314,15 @@ def one_hot(Y):
     one_hot_Y = one_hot_Y.T
     return one_hot_Y
 
-#This must be done
+
+# This must be done
 def backward_prop(Z1, A1, W1, X, Y, m):
     error = A1 - Y
     dZ1 = W1.dot(error) * sigmoid_der(Z1)
     dW1 = 1 / m * dZ1.dot(X.T)
     db1 = 1 / m * np.sum(dZ1)
     return dW1, db1
+
 
 def update_params(W1, b1, dW1, db1, alpha):
     W1 = W1 - alpha * dW1
@@ -343,13 +347,10 @@ def gradient_descent(X, Y, alpha, iterations, n):
         W1, b1 = update_params(W1, b1, dW1, db1, alpha)
         if i % 10 == 0:
             print("Iteration: ", i)
-            print(W1[0])
-            print(b1[0])
+            print(W1.shape)
+            print(X.shape)
 
     return W1, b1
-
-
-
 
 
 def make_predictions(X, W1, b1):
@@ -359,11 +360,9 @@ def make_predictions(X, W1, b1):
 
 
 if __name__ == '__main__':
-
     qas = get_qas()
     getGloveVectors()
     qa_vectors = simple_qa_vectors(qas, embeddings_dict)
-
 
     q_train, a_train = get_arrays(qa_vectors)
     q_train = np.array(q_train)
@@ -371,23 +370,23 @@ if __name__ == '__main__':
     q_train = q_train.T
     a_train = a_train.T
     n = q_train.shape[1]
-    W1, b1 = gradient_descent(q_train, a_train, 0.10, 100, n)
+    W1, b1 = gradient_descent(q_train, a_train, 0.10, 10, n)
     print(W1[0])
     print(b1[0])
-    #W1, b1, W2, b2 = init_params()
-    #Z1, A1, Z2, A2 = forward_prop(W1, b1, W2, b2, q_train)
-    #print(Z1)
+    # W1, b1, W2, b2 = init_params()
+    # Z1, A1, Z2, A2 = forward_prop(W1, b1, W2, b2, q_train)
+    # print(Z1)
 
     """
-    
+
     qa_vectors_array = list(qa_vectors.items())
     print(qa_vectors_array[0])
     np.random.shuffle(qa_vectors_array)
     print(qa_vectors_array[0])
     """
-    #print(qa_vectors["56be85543aeaaa14008c9063"][1])
-    #print(list(qa_vectors.items())[1])
-    #user_question = what_is_your_question()
-    #test_file = ["Hello, my name is james.", "I am 53 years old.", "james is British"]
-    #most_similar_sentence(test_file, user_question)
+    # print(qa_vectors["56be85543aeaaa14008c9063"][1])
+    # print(list(qa_vectors.items())[1])
+    # user_question = what_is_your_question()
+    # test_file = ["Hello, my name is james.", "I am 53 years old.", "james is British"]
+    # most_similar_sentence(test_file, user_question)
 
