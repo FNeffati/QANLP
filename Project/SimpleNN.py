@@ -86,7 +86,7 @@ tried regular cosine similarity
 not accurate at all. 
 """
 
-
+#Comparing two sentences which one is more relevant to a question
 def compare_sentence_with_question(sentence1, question):
     total_sentences_similarity = 0
     for word_1 in word_tokenize(sentence1):
@@ -103,7 +103,7 @@ def compare_sentence_with_question(sentence1, question):
                 continue
     return total_sentences_similarity
 
-
+#Extract most important things
 def process_sentence(sentence):
     # Can we preprocess our dataset so that we would not need to do the operations below for each sentence we have?
 
@@ -153,7 +153,7 @@ def process_sentence(sentence):
     # print("Your sentence seems to be about the following items:", str(important))
     return important
 
-
+#Extract most important things
 def process_question(user_q):
     # TODO Implement WH questions extraction
     stops = set(stopwords.words('english'))
@@ -208,7 +208,7 @@ def cosine_similarity(wvec1, wvec2):
 
     return similarity
 
-
+#Extract qustions and answers from dataset
 def get_qas():
     with open("Datasets/Training/train-v2.txt", 'r') as f:
         json_data = json.load(f)
@@ -223,7 +223,7 @@ def get_qas():
         # print(list(test_data.items())[0:10])
         return qas
 
-
+#Create word vectors for questions and answers
 def simple_qa_vectors(data, vector_dict):
     qa_vectors = {}
     empty = np.zeros(shape=(50,))
@@ -258,7 +258,7 @@ def simple_qa_vectors(data, vector_dict):
     print("done finding vectors")
     return qa_vectors
 
-
+#Get answers and questions as separate arrays
 def get_arrays(vectors):
     data = list(vectors.items())
 
@@ -271,7 +271,7 @@ def get_arrays(vectors):
 
     return q_train, a_train
 
-
+#Set up weights and bias
 def init_params():
     W1 = np.random.rand(1, 50) - 0.5
     b1 = np.random.rand(1, 1) - 0.5
@@ -280,13 +280,6 @@ def init_params():
     return W1, b1
 
 
-def ReLU(Z):
-    return np.maximum(Z, 0)
-
-
-def softmax(Z):
-    A = np.exp(Z) / sum(np.exp(Z))
-    return A
 
 
 def sigmoid(x):  # logistic function
@@ -304,18 +297,10 @@ def forward_prop(W1, b1, X):
     return Z1, A1
 
 
-def ReLU_deriv(Z):
-    return Z > 0
 
 
-def one_hot(Y):
-    one_hot_Y = np.zeros((Y.size, Y.max() + 1))
-    one_hot_Y[np.arange(Y.size), Y] = 1
-    one_hot_Y = one_hot_Y.T
-    return one_hot_Y
 
-
-# This must be done
+# We go backwards the neural network to see the errors
 def backward_prop(Z1, A1, W1, X, Y, m):
     error = A1 - Y
     dZ1 = W1.dot(error) * sigmoid_der(Z1)
@@ -323,13 +308,13 @@ def backward_prop(Z1, A1, W1, X, Y, m):
     db1 = 1 / m * np.sum(dZ1)
     return dW1, db1
 
-
+#We rectify the weights and bias here
 def update_params(W1, b1, dW1, db1, alpha):
     W1 = W1 - alpha * dW1
     b1 = b1 - alpha * db1
     return W1, b1
 
-
+'''
 def get_predictions(A):
     return np.argmax(A, 0)
 
@@ -337,7 +322,7 @@ def get_predictions(A):
 def get_accuracy(predictions, Y):
     print(predictions, Y)
     return np.sum(predictions == Y) / Y.size
-
+'''
 
 def gradient_descent(X, Y, alpha, iterations, n):
     W1, b1 = init_params()
@@ -347,16 +332,55 @@ def gradient_descent(X, Y, alpha, iterations, n):
         W1, b1 = update_params(W1, b1, dW1, db1, alpha)
         if i % 10 == 0:
             print("Iteration: ", i)
-            print(W1.shape)
-            print(X.shape)
+            #print(W1.shape)
+            #print(X.shape)
 
     return W1, b1
 
-
+'''
 def make_predictions(X, W1, b1):
     _, A1 = forward_prop(W1, b1, X)
     predictions = get_predictions(A1)
     return predictions
+'''
+#Get nn results for a user question
+def process_user_question(question, weights, bias, vector_dict):
+    tokens = word_tokenize(question)
+    empty = np.zeros(shape=(50,))
+    question_vectors = np.zeros(shape=(50,))
+    #get vectors for question
+    try:
+
+        for word in tokens:
+            word = word.lower()
+            question_vectors += vector_dict[word]
+
+
+    except:
+
+        question_vectors += empty
+    #Multiply each question vector by respective wieght and apply bias
+    for i in range(50):
+        question_vectors[i] *= weights[0][i]
+        question_vectors[i] += bias
+    #pass the processed question vectors to activation function
+    result = sigmoid(question_vectors)
+    #returns a (50,) array of floats which are the results of this question after activation
+    """
+    Example:
+        [0.56036192 0.44065425 0.56008441 0.6528372  0.65577416 0.59644015
+         0.33923938 0.58573419 0.5695277  0.52240839 0.57544139 0.37500304
+         0.46981236 0.49676253 0.52928405 0.61372548 0.38301962 0.63709157
+         0.54428967 0.39100132 0.59976918 0.48501537 0.40999988 0.45127281
+         0.50799247 0.95919028 0.40104783 0.59294465 0.81835053 0.71571873
+         0.99765124 0.73533718 0.61152855 0.57363327 0.52270125 0.5386597
+         0.52283112 0.51487598 0.43436114 0.53439491 0.65162222 0.46008518
+         0.57393716 0.66137629 0.47499859 0.54758152 0.50071964 0.46848847
+         0.45128081 0.46788413]
+    (50,)
+    """
+    return(result)
+
 
 
 if __name__ == '__main__':
@@ -371,8 +395,14 @@ if __name__ == '__main__':
     a_train = a_train.T
     n = q_train.shape[1]
     W1, b1 = gradient_descent(q_train, a_train, 0.10, 10, n)
-    print(W1[0])
-    print(b1[0])
+    #print(W1)
+    #print(W1[0][0])
+
+    user_question = input("Ask a question: ")
+    processed_question = process_user_question(user_question, W1, b1, embeddings_dict)
+    print(processed_question)
+    print(processed_question.shape)
+
     # W1, b1, W2, b2 = init_params()
     # Z1, A1, Z2, A2 = forward_prop(W1, b1, W2, b2, q_train)
     # print(Z1)
