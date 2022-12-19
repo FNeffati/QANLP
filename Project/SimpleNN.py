@@ -4,6 +4,7 @@ https://www.kaggle.com/wwsalmon/simple-mnist-nn-from-scratch-numpy-no-tf-keras
 """
 import math
 import os
+import traceback
 
 import nltk
 import numpy as np
@@ -46,7 +47,7 @@ def extract_qas(dataset):
 
 
 def getGloveVectors():
-    for file_name in os.scandir("Datasets/Training/glove"):
+    for file_name in os.scandir("../Datasets/Training/glove"):
         if os.path.isfile(file_name):
             with open(file_name, 'r', encoding="utf−8") as f:
                 try:
@@ -204,13 +205,16 @@ def cosine_similarity(wvec1, wvec2):
         numerator += wvec1[item] * wvec2[item]
         denom1 += wvec1[item] * wvec1[item]
         denom2 += wvec2[item] * wvec2[item]
-    similarity = numerator / (math.sqrt(denom1 * denom2))
+    try:
+        similarity = numerator / (math.sqrt(denom1 * denom2))
+    except:
+        similarity = 0.001
 
     return similarity
 
 #Extract qustions and answers from dataset
 def get_qas():
-    with open("Datasets/Training/train-v2.txt", 'r') as f:
+    with open("../Datasets/Training/trainv2.json", 'r') as f:
         json_data = json.load(f)
         data = json_data['data']
 
@@ -226,6 +230,7 @@ def get_qas():
 #Create word vectors for questions and answers
 def simple_qa_vectors(data, vector_dict):
     qa_vectors = {}
+    reverse_lookup = {}
     empty = np.zeros(shape=(50,))
     test = True
     items = list(data.items())
@@ -254,9 +259,13 @@ def simple_qa_vectors(data, vector_dict):
             answer_vectors += empty
 
         qa_vectors[entry[0]] = (question_vectors, answer_vectors)
+        #print("HEHEHE")
+        #print(type(question_vectors))
+        #print(type(type(question_vectors)))
+        reverse_lookup[tuple(question_vectors)] = answer
 
     print("done finding vectors")
-    return qa_vectors
+    return qa_vectors, reverse_lookup
 
 #Get answers and questions as separate arrays
 def get_arrays(vectors):
@@ -268,6 +277,7 @@ def get_arrays(vectors):
     for entry in data:
         q_train.append(entry[1][0])
         a_train.append(entry[1][1])
+
 
     return q_train, a_train
 
@@ -381,15 +391,32 @@ def process_user_question(question, weights, bias, vector_dict):
     """
     return(result)
 
+def compare_questions(user_question, dataet_question):
+    total_sentences_similarity = 0
+    for word_1 in word_tokenize(dataet_question):
+        best_similarity_for_current_words = 0
+        for word_2 in word_tokenize(user_question):
+            try:
+                vec1 = embeddings_dict[word_1]
+                vec2 = embeddings_dict[word_2]
+                current_similarity = cosine_similarity(vec1, vec2)
+                if current_similarity > best_similarity_for_current_words:
+                    best_similarity_for_current_words = current_similarity
+                total_sentences_similarity += best_similarity_for_current_words
+            except:
+                continue
+    return total_sentences_similarity
+
 
 
 if __name__ == '__main__':
     qas = get_qas()
     getGloveVectors()
-    qa_vectors = simple_qa_vectors(qas, embeddings_dict)
+    qa_vectors, reverse_lookup = simple_qa_vectors(qas, embeddings_dict)
 
     q_train, a_train = get_arrays(qa_vectors)
     q_train = np.array(q_train)
+    qsts = q_train
     a_train = np.array(a_train)
     q_train = q_train.T
     a_train = a_train.T
@@ -400,8 +427,22 @@ if __name__ == '__main__':
 
     user_question = input("Ask a question: ")
     processed_question = process_user_question(user_question, W1, b1, embeddings_dict)
-    print(processed_question)
-    print(processed_question.shape)
+    best_sim = 0
+    best_sentence = []
+    for question in qsts:
+        current = cosine_similarity(question, processed_question)
+        if current > best_sim:
+            try:
+                best_sentence = reverse_lookup[tuple(question)]
+                best_sim = current
+            except:
+                continue
+
+    print(best_sentence)
+    print(best_sim)
+
+    #print(processed_question)
+    #print(processed_question.shape)
 
     # W1, b1, W2, b2 = init_params()
     # Z1, A1, Z2, A2 = forward_prop(W1, b1, W2, b2, q_train)
