@@ -47,7 +47,7 @@ def extract_qas(dataset):
 
 
 def getGloveVectors():
-    for file_name in os.scandir("../Datasets/Training/glove"):
+    for file_name in os.scandir("Datasets/Training/glove"):
         if os.path.isfile(file_name):
             with open(file_name, 'r', encoding="utf−8") as f:
                 try:
@@ -212,9 +212,22 @@ def cosine_similarity(wvec1, wvec2):
 
     return similarity
 
+#Code from https://www.kaggle.com/code/cdabakoglu/word-vectors-cosine-similarity/notebook
+def cosine_similarity2(a, b):
+    nominator = np.dot(a, b)
+
+    a_norm = np.sqrt(np.sum(a ** 2))
+    b_norm = np.sqrt(np.sum(b ** 2))
+
+    denominator = a_norm * b_norm
+
+    cosine_similarity = nominator / denominator
+
+    return cosine_similarity
+
 #Extract qustions and answers from dataset
 def get_qas():
-    with open("../Datasets/Training/trainv2.json", 'r') as f:
+    with open("Datasets/Training/train-v2.txt", 'r') as f:
         json_data = json.load(f)
         data = json_data['data']
 
@@ -231,6 +244,7 @@ def get_qas():
 def simple_qa_vectors(data, vector_dict):
     qa_vectors = {}
     reverse_lookup = {}
+    answer_list = []
     empty = np.zeros(shape=(50,))
     test = True
     items = list(data.items())
@@ -263,9 +277,10 @@ def simple_qa_vectors(data, vector_dict):
         #print(type(question_vectors))
         #print(type(type(question_vectors)))
         reverse_lookup[tuple(question_vectors)] = answer
+        answer_list.append(entry[1][1])
 
     print("done finding vectors")
-    return qa_vectors, reverse_lookup
+    return qa_vectors, reverse_lookup, answer_list
 
 #Get answers and questions as separate arrays
 def get_arrays(vectors):
@@ -412,7 +427,7 @@ def compare_questions(user_question, dataet_question):
 if __name__ == '__main__':
     qas = get_qas()
     getGloveVectors()
-    qa_vectors, reverse_lookup = simple_qa_vectors(qas, embeddings_dict)
+    qa_vectors, reverse_lookup , answer_list= simple_qa_vectors(qas, embeddings_dict)
 
     q_train, a_train = get_arrays(qa_vectors)
     q_train = np.array(q_train)
@@ -421,7 +436,7 @@ if __name__ == '__main__':
     q_train = q_train.T
     a_train = a_train.T
     n = q_train.shape[1]
-    W1, b1 = gradient_descent(q_train, a_train, 0.10, 10, n)
+    W1, b1 = gradient_descent(q_train, a_train, 0.10, 400, n)
     #print(W1)
     #print(W1[0][0])
 
@@ -429,14 +444,26 @@ if __name__ == '__main__':
     processed_question = process_user_question(user_question, W1, b1, embeddings_dict)
     best_sim = 0
     best_sentence = []
-    for question in qsts:
-        current = cosine_similarity(question, processed_question)
+
+    a_train = a_train.T
+    count = 0
+    #test = True
+    for answer in a_train:
+        '''
+        if(test):
+            sim = cosine_similarity(answer, processed_question)
+            print(answer_list[count])
+            print(sim)
+            test = False
+        '''
+        current = cosine_similarity(answer, processed_question)
         if current > best_sim:
             try:
-                best_sentence = reverse_lookup[tuple(question)]
+                best_sentence = answer_list[count]
                 best_sim = current
             except:
                 continue
+        count += 1
 
     print(best_sentence)
     print(best_sim)
