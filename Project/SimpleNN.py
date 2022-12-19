@@ -245,6 +245,8 @@ def simple_qa_vectors(data, vector_dict):
     qa_vectors = {}
     reverse_lookup = {}
     answer_list = []
+    question_list = []
+    qa_dict = {}
     empty = np.zeros(shape=(50,))
     test = True
     items = list(data.items())
@@ -278,9 +280,11 @@ def simple_qa_vectors(data, vector_dict):
         #print(type(type(question_vectors)))
         reverse_lookup[tuple(question_vectors)] = answer
         answer_list.append(entry[1][1])
+        question_list.append(entry[1][0])
+        qa_dict[entry[1][0]] = entry[1][1]
 
     print("done finding vectors")
-    return qa_vectors, reverse_lookup, answer_list
+    return qa_vectors, reverse_lookup, answer_list, question_list, qa_dict
 
 #Get answers and questions as separate arrays
 def get_arrays(vectors):
@@ -427,7 +431,7 @@ def compare_questions(user_question, dataet_question):
 if __name__ == '__main__':
     qas = get_qas()
     getGloveVectors()
-    qa_vectors, reverse_lookup , answer_list= simple_qa_vectors(qas, embeddings_dict)
+    qa_vectors, reverse_lookup , answer_list, question_list, qa_dict = simple_qa_vectors(qas, embeddings_dict)
 
     q_train, a_train = get_arrays(qa_vectors)
     q_train = np.array(q_train)
@@ -437,36 +441,83 @@ if __name__ == '__main__':
     a_train = a_train.T
     n = q_train.shape[1]
     W1, b1 = gradient_descent(q_train, a_train, 0.10, 400, n)
-    #print(W1)
-    #print(W1[0][0])
-
-    user_question = input("Ask a question: ")
-    processed_question = process_user_question(user_question, W1, b1, embeddings_dict)
-    best_sim = 0
-    best_sentence = []
-
     a_train = a_train.T
-    count = 0
-    #test = True
-    for answer in a_train:
-        '''
-        if(test):
-            sim = cosine_similarity(answer, processed_question)
-            print(answer_list[count])
-            print(sim)
-            test = False
-        '''
-        current = cosine_similarity(answer, processed_question)
-        if current > best_sim:
-            try:
-                best_sentence = answer_list[count]
-                best_sim = current
-            except:
-                continue
-        count += 1
+    q_train = q_train.T
+    num_true = 0
+    num_false = 0
+    accuracy = 0.0
+    best_answers = []
+    question_list = np.array(question_list)
+    np.random.shuffle(question_list)
+    """
+    for i in range(100):
+        question = question_list[i]
+        print(question)
+        print(i)
+        processed_question = process_user_question(question, W1, b1, embeddings_dict)
+        best_sim = 0
 
-    print(best_sentence)
-    print(best_sim)
+
+        count = 0
+        # test = True
+        for answer in a_train:
+            '''
+            if(test):
+                sim = cosine_similarity(answer, processed_question)
+                print(answer_list[count])
+                print(sim)
+                test = False
+            '''
+            current = cosine_similarity(answer, processed_question)
+            if current > best_sim:
+                try:
+                    best_answers.append(answer_list[count])
+                    best_sim = current
+                except:
+                    continue
+
+            count += 1
+    count = 0
+
+    for i in range(100):
+        if(qa_dict[question_list[i]] == best_answers[i]):
+            num_true += 1
+        else:
+            num_false += 1
+    accuracy = num_true / (num_false + num_true)
+    print("Correct answered: ", num_true)
+    print("Falsely answered: ", num_false)
+    print("Accuracy: ", accuracy)
+    """
+    for i in range(5):
+
+        user_question = input("Ask a question: ")
+        processed_question = process_user_question(user_question, W1, b1, embeddings_dict)
+        best_sim = 0
+        best_sentence = []
+
+
+        count = 0
+        #test = True
+        for answer in a_train:
+            '''
+            if(test):
+                sim = cosine_similarity(answer, processed_question)
+                print(answer_list[count])
+                print(sim)
+                test = False
+            '''
+            current = cosine_similarity(answer, processed_question)
+            if current > best_sim:
+                try:
+                    best_sentence = answer_list[count]
+                    best_sim = current
+                except:
+                    continue
+            count += 1
+
+        print(best_sentence)
+        print(best_sim)
 
     #print(processed_question)
     #print(processed_question.shape)
